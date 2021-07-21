@@ -41,18 +41,6 @@ Tablero *inicializarTablero(int filas, int columnas){
     return tablero;
 }
 
-void imprimirTablero(Tablero *tablero){
-    for(int i = 0; i < tablero->columnas; ++i)
-        printf("|%i", i + 1);
-    printf("|\n");
-    for(int i = 0; i < tablero->columnas; ++i){
-        for(int j = 0; j < tablero->filas; ++j){
-            printf("|%c", tablero->tablero[i][j]);
-        }
-        printf("|\n");
-    }
-}
-
 int realizarJugada(Tablero *tablero, int columna, char jugador){
     for(int i = tablero->filas-1; i >= 0; --i){
         if(tablero->tablero[i][columna] == ' '){
