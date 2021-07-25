@@ -59,3 +59,10 @@ void reiniciarTablero(Tablero *tablero){
         for(int j = 0; j < tablero->columnas; ++j)
             tablero->tablero[i][j] = 0;
 }
+
+int estaLleno(Tablero *tablero){
+    for(int i = 0; i < tablero->columnas; ++i)
+        if(!tablero->tablero[0][i])
+            return 0;
+    return 1;
+}
