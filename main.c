@@ -3,13 +3,13 @@
 #include "salida.h"
 
 int main(int argc, char const *argv[]){
-    Tablero *tablero = inicializarTablero(5, 5);
-    char p = 'X', aux = 'O';
+    Tablero *tablero = inicializarTablero(5, 4);
+    int p = 1, aux = 2;
     int columna;
 
     system("clear");
     while(!estaLleno(tablero)){
-        imprimirTableroV2(tablero);
+        imprimirTablero(tablero);
 
         printf("\nIngrese la columna:\n>>> ");
         scanf("%i", &columna);
@@ -31,6 +31,7 @@ int main(int argc, char const *argv[]){
     }
     system("clear");
 
-    imprimirTableroV2(tablero);
+    imprimirTablero(tablero);
+
     return 0;
 }

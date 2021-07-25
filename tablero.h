@@ -1,16 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef struct _jugador{
+    int turno;
+    char nombre[15];
+    char *color;
+}Jugador;
+
 typedef struct _tablero{
     int filas;
     int columnas;
-    char **tablero;
+    int **tablero;
 }Tablero;
 
 Tablero *inicializarTablero(int filas, int columnas){
     Tablero *tablero = NULL;
 
-    tablero = (Tablero*)malloc(sizeof(Tablero));
+    tablero = (Tablero*)calloc(1, sizeof(Tablero));
     if(tablero == NULL){
         fprintf(stderr, "Error al inicializar el tablero: falla en malloc.\n");
         exit(1);
@@ -19,31 +25,28 @@ Tablero *inicializarTablero(int filas, int columnas){
     tablero->filas = filas;
     tablero->columnas = columnas;
 
-    tablero->tablero = (char**)malloc(sizeof(char*)*tablero->columnas);
+    tablero->tablero = (int**)calloc(tablero->filas, sizeof(int*));
     if(tablero->tablero == NULL){
         fprintf(stderr, "Error al inicializar el tablero: falla en malloc.\n");
         exit(1);
     }
 
-    unsigned long size = sizeof(char) * tablero->filas;
     for(int i = 0; i < tablero->columnas; ++i){
-        tablero->tablero[i] = (char*)malloc(size);
+        tablero->tablero[i] = (int*)calloc(tablero->columnas, sizeof(int));
         if(tablero->tablero[i] == NULL){
             fprintf(stderr, "Error al inicializar el tablero: falla en malloc.\n");
             exit(1);
         }
     }
 
-    for(int i = 0; i < tablero->columnas; ++i)
-        for(int j = 0; j < tablero->filas; ++j)
-            tablero->tablero[i][j] = ' ';
-            
     return tablero;
 }
 
-int realizarJugada(Tablero *tablero, int columna, char jugador){
+// Retorna 0 si pudo realizar la jugada, de lo contrario,
+// retorna 1 (Columna llena)
+int realizarJugada(Tablero *tablero, int columna, int jugador){
     for(int i = tablero->filas-1; i >= 0; --i){
-        if(tablero->tablero[i][columna] == ' '){
+        if(tablero->tablero[i][columna] == 0){
             tablero->tablero[i][columna] = jugador;
             return 0;
         }
@@ -52,15 +55,7 @@ int realizarJugada(Tablero *tablero, int columna, char jugador){
 }
 
 void reiniciarTablero(Tablero *tablero){
-    for(int i = 0; i < tablero->columnas; ++i)
-        for(int j = 0; j < tablero->filas; ++j)
-            tablero->tablero[i][j] = ' ';
-}
-
-int estaLleno(Tablero *tablero){
-    for(int i = 0; i < tablero->columnas; ++i){
-        if(tablero->tablero[0][i] == ' ')
-            return 0;
-    }
-    return 1;
+    for(int i = 0; i < tablero->filas; ++i)
+        for(int j = 0; j < tablero->columnas; ++j)
+            tablero->tablero[i][j] = 0;
 }

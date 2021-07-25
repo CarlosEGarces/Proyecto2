@@ -1,5 +1,19 @@
 #include <stdio.h>
-#include "libreria.h"
+#include "tablero.h"
+
+#define fisheye "\u25C9"
+
+// Colores
+#define RESET    "\x1b[0m"
+#define ROJO     "\033[1;31m"
+#define VERDE    "\033[1;32m"
+#define AMARILLO "\033[1;33m"
+#define AZUL     "\033[1;34m"
+#define ROSA     "\033[1;35m"
+#define CYAN     "\033[1;36m"
+#define BLANCO   "\033[1;37m"
+#define NARANJA  "\033[0;33m"
+#define MORADO   "\033[0;35m"
 
 // Caracteres para imprimir el tablero
 // ar = arriba; ab = abajo;
@@ -50,10 +64,10 @@ static void imprimerEnumeracion(int size){
 }
 
 void imprimirTablero(Tablero *tablero){
-    imprimerEnumeracion(tablero->filas);
+    imprimerEnumeracion(tablero->columnas);
     
     printf(ar_i);
-    for(int i = 0; i < tablero->filas * 2 - 1; ++i){
+    for(int i = 0; i < tablero->columnas * 2 - 1; ++i){
         if(i & 1)
             printf(T_ar);
         else
@@ -62,7 +76,7 @@ void imprimirTablero(Tablero *tablero){
     printf(ar_d);
     printf("\n");
 
-    for(int i = 0; i < tablero->filas*2-1; ++i){
+    for(int i = 0; i < tablero->filas * 2 - 1; ++i){
         if(i & 1){
             printf(T_ii);
             for(int j = 0; j < tablero->columnas * 2 - 1; ++j){
@@ -74,17 +88,25 @@ void imprimirTablero(Tablero *tablero){
             printf(T_dd);
         }else{
             for(int j = 0; j < tablero->columnas * 2 + 1; ++j){
-                if(j & 1)
-                    printf(" %c ", tablero->tablero[i/2][(j - 1)/2]);
-                else
+                if(j & 1){
+                    if(tablero->tablero[i/2][(j - 1)/2] == 0){
+                        printf("   ");
+                    }else{
+                        if(tablero->tablero[i / 2][(j - 1) / 2] == 1)
+                            printf(" %s%s%s ", ROJO, fisheye, RESET);
+                        else
+                            printf(" %s%s%s ", AMARILLO, fisheye, RESET);
+                    }
+                }else{
                     printf(yyyy);
+                }
             }
         }
         printf("\n");
     }
 
     printf(ab_i);
-    for(int i = 0; i < tablero->filas * 2 - 1; ++i){
+    for(int i = 0; i < tablero->columnas * 2 - 1; ++i){
         if(i & 1)
             printf(T_ab);
         else
