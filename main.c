@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]){
         printf("\n");
 
         if(columna == 10){
-            printf("minimax: %i\n", minimax(tablero, p, MAX, &columna));
+            printf("minimax: %i\n", minimax(tablero, p, -2, 2, MAX, &columna));
             printf("columna: %i\n", ++columna);
         }
 
