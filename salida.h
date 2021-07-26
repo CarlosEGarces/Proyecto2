@@ -89,10 +89,10 @@ void imprimirTablero(Tablero *tablero){
         }else{
             for(int j = 0; j < tablero->columnas * 2 + 1; ++j){
                 if(j & 1){
-                    if(tablero->tablero[i/2][(j - 1)/2] == 0){
+                    if(tablero->tablero[(i + 1) / 2][j / 2] == 0){
                         printf("   ");
                     }else{
-                        if(tablero->tablero[i / 2][(j - 1) / 2] == 1)
+                        if(tablero->tablero[(i + 1) / 2][j / 2] == 1)
                             printf(" %s%s%s ", ROJO, fisheye, RESET);
                         else
                             printf(" %s%s%s ", AMARILLO, fisheye, RESET);
