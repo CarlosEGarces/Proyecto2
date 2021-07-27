@@ -1,24 +1,28 @@
-#include "salida.h"
+#include <stdio.h>
+#include "heuristica.h"
 
-#define MIN -1
-#define MAX 1
+#define INFINITO 10001
+#define MIN -10000
+#define MAX 10000
+#define EMPATE 0
 #define max(a, b) ((a > b)?a:b)
 #define min(a, b) ((a < b)?a:b)
 
-// LLamada inicial: minimax(tablero, jugadorComputadora, -2, 2, MAX, &columna);
-int minimax(Tablero *tablero, int jugador, int alfa, int beta, int modo, int *jugada){
-    if(evaluarTablero(tablero, jugador))
+static int _minimax(Tablero *tablero, int profundidad, int jugador, int columna, int alfa, int beta, int modo, int *jugada, int vector[]){
+    if(verificarGanador(tablero, columna, 4, vector))
         return -1 * modo;
     if(estaLleno(tablero))
-        return 0;
-    int valor, aux, columna;
-    if(modo == MAX){
-        valor = aux = -2;
+        return EMPATE;
+    if(profundidad == 0)
+        return valorHeuristico(tablero);
+    int valor, aux, auxColumna;
+    if(modo == MAX){ // modo == MAX
+        valor = aux = -INFINITO;
         for(int i = 0; i < tablero->columnas; ++i){
             if(realizarJugada(tablero, i, 2)){
-                valor = max(valor, minimax(tablero, 2, alfa, beta, MIN, jugada));
+                valor = max(valor, _minimax(tablero, profundidad - 1, 2, i, alfa, beta, MIN, jugada, vector));
                 if(aux != valor){
-                    columna = i;
+                    auxColumna = i;
                     aux = valor;
                 }
                 revertirJugada(tablero, i);
@@ -28,12 +32,12 @@ int minimax(Tablero *tablero, int jugador, int alfa, int beta, int modo, int *ju
             }
         }
     }else{ // modo == MIN
-        valor = aux = 2;
+        valor = aux = INFINITO;
         for(int i = 0; i < tablero->columnas; ++i){
             if(realizarJugada(tablero, i, 1)){
-                valor = min(valor, minimax(tablero, 1, alfa, beta, MAX, jugada));
+                valor = min(valor, _minimax(tablero, profundidad - 1, 1, i, alfa, beta, MAX, jugada, vector));
                 if(aux != valor){
-                    columna = i;
+                    auxColumna = i;
                     aux = valor;
                 }
                 revertirJugada(tablero, i);
@@ -43,6 +47,10 @@ int minimax(Tablero *tablero, int jugador, int alfa, int beta, int modo, int *ju
             }
         }
     }
-    *jugada = columna;
+    *jugada = auxColumna;
     return valor;
+}
+
+int minimax(Tablero *tablero, int jugador, int profundidad, int *jugada, int vector[]){
+    return _minimax(tablero, profundidad, jugador, -1, -INFINITO, INFINITO, MAX, jugada, vector);
 }

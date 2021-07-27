@@ -1,37 +1,49 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "minimax.h"
+
+int determinarProfundidad(int filas, int columnas);
 
 int main(int argc, char const *argv[]){
     Tablero *tablero = inicializarTablero(4, 4);
     int p = 1, aux = 2;
     int columna;
 
+    // int profundidad = (int)floor((tablero->filas + tablero->columnas)/2.0);
+    int profundidad = 6;
+
+    int vector[8];
+
     system("clear");
     while(!estaLleno(tablero)){
         imprimirTablero(tablero);
 
-        printf("\nJugador %i: Ingrese la columna:\n>>> ", p);
-        scanf("%i", &columna);
-        printf("\n");
+        if(p == 1){
+            printf("\nJugador %i: Ingrese la columna:\n>>> ", p);
+            scanf("%i", &columna);
+            printf("\n");
 
-        if(columna == 10){
-            printf("minimax: %i\n", minimax(tablero, p, -2, 2, MAX, &columna));
-            printf("columna: %i\n", ++columna);
+            columna--;
+
+        }else{
+            minimax(tablero, p, profundidad, &columna, vector);
         }
 
-        if((columna < 1 || columna > tablero->columnas)){
+        if((columna < 0 || columna > tablero->columnas - 1)){
             printf("Columna invalida, intente con otra.\n");
             continue;
         }
 
-        if(!realizarJugada(tablero, columna-1, p)){
+        if(!realizarJugada(tablero, columna, p)){
             printf("Columna llena, intente con otra.\n");
             continue;
         }
 
-        if(evaluarTablero(tablero, p)){
+        if(verificarGanador(tablero, columna, 4, vector)){
             printf("Gano el jugador %i\n", p);
+            for(int i = 0; i < 8; i+=2)
+                printf("{%i, %i}\n", vector[i], vector[i + 1]);
             break;
         }
     

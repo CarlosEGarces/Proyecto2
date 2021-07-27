@@ -4,6 +4,7 @@
 typedef struct _jugador{
     char nombre[15];
     char *color;
+    int mode;
 }Jugador;
 
 typedef struct _tablero{
@@ -74,64 +75,145 @@ int estaLleno(Tablero *tablero){
     return 1;
 }
 
-int verificarHorizontal(Tablero *tablero, int fila, int columna){
-    int cont = 1;
-    if(columna + 3 < tablero->columnas){
-        for(int i = 1; i < 4; ++i){
-            if(tablero->tablero[fila][columna + i] != tablero->tablero[fila][columna])
-                break;
-            cont++;
-        }
+static int verificarHorizontal(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
+    int contador = 1, valorFicha = tablero->tablero[fila][columna];
+    int diferencia = tablero->columnas - columna - 1;
+    int indice = 0;
+
+    vector[indice++] = fila;
+    vector[indice++] = columna;
+
+    for(int i = 1; i < diferencia + 1; ++i){ // Verifica a la derecha
+        if(tablero->tablero[fila][columna + i] != valorFicha || contador == cantidad)
+            break;
+        contador++;
+        vector[indice++] = fila;
+        vector[indice++] = columna + i;
     }
-    return cont == 4;
+    diferencia = columna > cantidad ? cantidad - 1 : columna;
+    for(int i = 1; i < diferencia + 1; ++i){ // Verifica a la izquierda
+        if(tablero->tablero[fila][columna - i] != valorFicha || contador == cantidad)
+            break;
+        contador++;
+        vector[indice++] = fila;
+        vector[indice++] = columna - i;
+    }
+    return contador == cantidad;
 }
 
-int verificarVertical(Tablero *tablero, int fila, int columna){
-    int cont = 1;
-    if(fila + 3 < tablero->filas){
-        for(int i = 1; i < 4; ++i){
-            if(tablero->tablero[fila + i][columna] != tablero->tablero[fila][columna])
-                break;
-            cont++;
-        }
+static int verificarVertical(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
+    int contador = 1, valorFicha = tablero->tablero[fila][columna];
+    int diferencia = tablero->filas - fila - 1;
+    int indice = 0;
+
+    vector[indice++] = fila;
+    vector[indice++] = columna;
+
+    for(int i = 1; i < diferencia + 1; ++i){
+        if(tablero->tablero[fila + i][columna] != valorFicha || contador == cantidad)
+            break;
+        contador++;
+        vector[indice++] = fila + i;
+        vector[indice++] = columna;
     }
-    return cont == 4;
+    return contador == cantidad;
 }
 
-int verificarDiagonales(Tablero *tablero, int fila, int columna){
-    int cont = 1;
-    if(fila + 3 < tablero->filas){
-        if(columna + 3 < tablero->columnas){
-            for(int i = 1; i < 4; ++i){
-                if(tablero->tablero[fila + i][columna + i] != tablero->tablero[fila][columna])
-                    break;
-                cont++;
-            }
-        }else if(columna - 3 >= 0){
-            for(int i = 1; i < 4; ++i){
-                if(tablero->tablero[fila + i][columna - i] != tablero->tablero[fila][columna])
-                    break;
-                cont++;
-            }
-        }
+// Arriba a la izquierda hacia abajo a la derecha
+static int verificarDiagonalPrincipal(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
+    int diferenciaArriba, diferenciaAbajo, contador = 1;
+    int valorFicha = tablero->tablero[fila][columna];
+    int distanciaColumna = tablero->columnas - columna - 1;
+    int distanciaFila = tablero->filas - fila - 1;
+    int indice = 0;
+
+    vector[indice++] = fila;
+    vector[indice++] = columna;
+
+    diferenciaArriba = columna > fila ? fila : columna;
+    for(int i = 1; i < diferenciaArriba + 1; ++i){ // arriba a la izquierda
+        if(tablero->tablero[fila - i][columna - i] != valorFicha || contador == cantidad)
+            break;
+        contador++;
+        vector[indice++] = fila - i;
+        vector[indice++] = columna - i;
     }
-    return cont == 4;
+
+    diferenciaAbajo = distanciaColumna > distanciaFila ? distanciaFila : distanciaColumna;
+    for(int i = 1; i < diferenciaAbajo + 1; ++i){ // abajo a la derecha
+        if(tablero->tablero[fila + i][columna + i] != valorFicha || contador == cantidad)
+            break;
+        contador++;
+        vector[indice++] = fila + i;
+        vector[indice++] = columna + i;
+    }
+
+    return contador == cantidad;
+}
+
+// Abajo a la izquierda hacia arriba a la derecha
+static int verificarDiagonalSecundaria(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
+    int diferenciaArriba, diferenciaAbajo, contador = 1;
+    int valorFicha = tablero->tablero[fila][columna];
+    int distanciaColumna = tablero->columnas - columna - 1;
+    int distanciaFila = tablero->filas - fila - 1;
+    int indice = 0;
+
+    vector[indice++] = fila;
+    vector[indice++] = columna;
+
+    diferenciaArriba = fila > distanciaColumna ? distanciaColumna : fila;
+    for(int i = 1; i < diferenciaArriba + 1; ++i){ // arriba a la derecha
+        if(tablero->tablero[fila - i][columna + i] != valorFicha || contador == cantidad)
+            break;
+        contador++;
+        vector[indice++] = fila - i;
+        vector[indice++] = columna + i;
+    }
+
+    diferenciaAbajo = columna > distanciaFila ? distanciaFila : columna;
+    for(int i = 1; i < diferenciaAbajo + 1; ++i){ // abajo a la izquierda
+        if(tablero->tablero[fila + i][columna - i] != valorFicha || contador == cantidad)
+            break;
+        contador++;
+        vector[indice++] = fila + i;
+        vector[indice++] = columna - i;
+    }
+
+    return contador == cantidad;
+}
+
+static int verificarDiagonales(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
+    if(verificarDiagonalPrincipal(tablero, fila, columna, cantidad, vector))
+        return 1;
+    return verificarDiagonalSecundaria(tablero, fila, columna, cantidad, vector);
+}
+
+static void resetearVector(int vector[]){
+    for(int i = 0; i < 8; ++i)
+        vector[i] = -1;
 }
 
 // Evalua el tablero y:
 // retorna 1 si gano el ultimo jugador en jugar,
 // de lo contrario, retorna 0 
-int evaluarTablero(Tablero *tablero, int jugador){
+int verificarGanador(Tablero *tablero, int columna, int cantidad, int vector[]){
+    if(columna < 0)
+        return 0;
     for(int i = 0; i < tablero->filas; ++i){
-        for(int j = 0; j < tablero->columnas; ++j){
-            if(tablero->tablero[i][j] == jugador){
-                if(verificarHorizontal(tablero, i, j))
-                    return 1;
-                if(verificarVertical(tablero, i, j))
-                    return 1;
-                if(verificarDiagonales(tablero, i, j))
-                    return 1;
-            }
+        if(tablero->tablero[i][columna] != 0){
+            resetearVector(vector);
+            if(verificarHorizontal(tablero, i, columna, cantidad, vector))
+                return 1;
+
+            resetearVector(vector);
+            if(verificarVertical(tablero, i, columna, cantidad, vector))
+                return 1;
+
+            resetearVector(vector);
+            if(verificarDiagonales(tablero, i, columna, cantidad, vector))
+                return 1;
+            break;
         }
     }
     return 0;
