@@ -3,17 +3,12 @@
 #include <math.h>
 #include "minimax.h"
 
-int determinarProfundidad(int filas, int columnas);
+int determinarProfundidad(int filas, int columnas, int cantidadJugadas);
 
 int main(int argc, char const *argv[]){
-    Tablero *tablero = inicializarTablero(4, 4);
-    int p = 1, aux = 2;
-    int columna;
-
-    // int profundidad = (int)floor((tablero->filas + tablero->columnas)/2.0);
-    int profundidad = 6;
-
-    int vector[8];
+    Tablero *tablero = crearTablero(4, 4);
+    int p = 1, aux = 2, cantidadJugadas = 0;
+    int columna, profundidad, vector[8];
 
     system("clear");
     while(!estaLleno(tablero)){
@@ -27,7 +22,9 @@ int main(int argc, char const *argv[]){
             columna--;
 
         }else{
+            profundidad = determinarProfundidad(tablero->filas, tablero->columnas, ++cantidadJugadas);
             minimax(tablero, p, profundidad, &columna, vector);
+            cantidadJugadas++;
         }
 
         if((columna < 0 || columna > tablero->columnas - 1)){

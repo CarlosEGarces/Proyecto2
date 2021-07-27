@@ -1,9 +1,10 @@
 #include "salida.h"
 
-#define ALTO 100
-#define MEDIO 50
-#define BAJO 10
-#define SIN_PUNTUACION 0
+// Puntuaciones
+#define ALTA 100
+#define MEDIA 50
+#define BAJA 10
+#define NADA 0
 
 //    1           2           3           4
 // _XXX_      X_XX_       _X_XX_       _XX_X_      100      
@@ -12,29 +13,29 @@
 
 static int puntuacionHeuristica(int j, int v1, int v2, int v3, int v4, int v5){
     if(v1 == 0 && v2 == j && v3 == j && v4 == j && v5 == 0)
-        return ALTO;
+        return ALTA;
         
     if(v1 == 0 && v2 == j && v3 == j && v4 == j)
-        return MEDIO;
+        return MEDIA;
     if(v1 == j && v2 == j && v3 == j && v4 == 0)
-        return MEDIO;
+        return MEDIA;
     if(v1 == j && v2 == j && v3 == 0 && v4 == j)
-        return MEDIO;
+        return MEDIA;
     if(v1 == j && v2 == 0 && v3 == j && v4 == j)
-        return MEDIO;
+        return MEDIA;
 
     if(v1 == 0 && v2 == j && v3 == j && v4 == 0)
-        return BAJO;
+        return BAJA;
     if(v1 == j && v2 == 0 && v3 == j && v4 == 0)
-        return BAJO;
+        return BAJA;
     if(v1 == 0 && v2 == j && v3 == 0 && v4 == j)
-        return BAJO;
+        return BAJA;
     if(v1 == 0 && v2 == 0 && v3 == j && v4 == j)
-        return BAJO;
+        return BAJA;
     if(v1 == j && v2 == j && v3 == 0 && v4 == 0)
-        return BAJO;
+        return BAJA;
 
-    return SIN_PUNTUACION;
+    return NADA;
 }
 
 static int puntuacionHorizontal(Tablero *tablero, int jugador){

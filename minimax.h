@@ -1,9 +1,10 @@
-#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "heuristica.h"
 
-#define INFINITO 10001
-#define MIN -10000
-#define MAX 10000
+#define INFINITO 10000
+#define MIN -1000
+#define MAX 1000
 #define EMPATE 0
 #define max(a, b) ((a > b)?a:b)
 #define min(a, b) ((a < b)?a:b)
@@ -15,14 +16,14 @@ static int _minimax(Tablero *tablero, int profundidad, int jugador, int columna,
         return EMPATE;
     if(profundidad == 0)
         return valorHeuristico(tablero);
-    int valor, aux, auxColumna;
+    int valor, aux, columnaJugada, n = tablero->columnas;
     if(modo == MAX){ // modo == MAX
         valor = aux = -INFINITO;
-        for(int i = 0; i < tablero->columnas; ++i){
+        for(int j = 0, i = rand() % n; j < n; ++j, i = (i + 1) % n){
             if(realizarJugada(tablero, i, 2)){
                 valor = max(valor, _minimax(tablero, profundidad - 1, 2, i, alfa, beta, MIN, jugada, vector));
                 if(aux != valor){
-                    auxColumna = i;
+                    columnaJugada = i;
                     aux = valor;
                 }
                 revertirJugada(tablero, i);
@@ -33,11 +34,11 @@ static int _minimax(Tablero *tablero, int profundidad, int jugador, int columna,
         }
     }else{ // modo == MIN
         valor = aux = INFINITO;
-        for(int i = 0; i < tablero->columnas; ++i){
+        for(int i = 0, j = rand() % n; i < n; ++i, j = (j + 1) % n){
             if(realizarJugada(tablero, i, 1)){
                 valor = min(valor, _minimax(tablero, profundidad - 1, 1, i, alfa, beta, MAX, jugada, vector));
                 if(aux != valor){
-                    auxColumna = i;
+                    columnaJugada = i;
                     aux = valor;
                 }
                 revertirJugada(tablero, i);
@@ -47,10 +48,11 @@ static int _minimax(Tablero *tablero, int profundidad, int jugador, int columna,
             }
         }
     }
-    *jugada = auxColumna;
+    *jugada = columnaJugada;
     return valor;
 }
 
 int minimax(Tablero *tablero, int jugador, int profundidad, int *jugada, int vector[]){
+    srand(time(0));
     return _minimax(tablero, profundidad, jugador, -1, -INFINITO, INFINITO, MAX, jugada, vector);
 }

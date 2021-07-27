@@ -13,7 +13,7 @@ typedef struct _tablero{
     int **tablero;
 }Tablero;
 
-Tablero *inicializarTablero(int filas, int columnas){
+Tablero *crearTablero(int filas, int columnas){
     Tablero *tablero = NULL;
 
     tablero = (Tablero*)calloc(1, sizeof(Tablero));
@@ -213,6 +213,7 @@ int verificarGanador(Tablero *tablero, int columna, int cantidad, int vector[]){
             resetearVector(vector);
             if(verificarDiagonales(tablero, i, columna, cantidad, vector))
                 return 1;
+                
             break;
         }
     }
