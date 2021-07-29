@@ -1,11 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct _jugador{
+struct{
     char nombre[15];
     char *color;
     int mode;
-}Jugador;
+    int turno;
+}jugadores[2];
+
+
+int obtenerJugador(int mode){
+    if(jugadores[0].mode == mode)
+        return jugadores[0].turno;
+    return jugadores[1].turno;
+}
 
 typedef struct _tablero{
     int filas;
@@ -213,7 +221,7 @@ int verificarGanador(Tablero *tablero, int columna, int cantidad, int vector[]){
             resetearVector(vector);
             if(verificarDiagonales(tablero, i, columna, cantidad, vector))
                 return 1;
-                
+
             break;
         }
     }
