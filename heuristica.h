@@ -1,4 +1,4 @@
-#include "salida.h"
+#include "tablero.h"
 
 // Puntuaciones
 #define ALTA 100
@@ -40,72 +40,72 @@ static int puntuacionHeuristica(int j, int v1, int v2, int v3, int v4, int v5){
 }
 
 
-static int puntuacionHorizontal(Tablero *tablero, int jugador){
+static int puntuacionHorizontal(int jugador){
     int puntuacion = 0;
     int v1, v2, v3, v4, v5;
-    for(int i = 0; i < tablero->filas; ++i){
-        for(int j = 0; j < tablero->columnas - 3; ++j){
-            v1 = tablero->tablero[i][j];
-            v2 = tablero->tablero[i][j + 1];
-            v3 = tablero->tablero[i][j + 2];
-            v4 = tablero->tablero[i][j + 3];
+    for(int i = 0; i < config.filas; ++i){
+        for(int j = 0; j < config.columnas - (config.cantFichas - 1); ++j){
+            v1 = tablero[i][j];
+            v2 = tablero[i][j + 1];
+            v3 = tablero[i][j + 2];
+            v4 = tablero[i][j + 3];
             v5 = -1;
-            if(j + 4 < tablero->columnas)
-                v5 = tablero->tablero[i][j + 4];
+            if(j + 4 < config.columnas)
+                v5 = tablero[i][j + 4];
             puntuacion += puntuacionHeuristica(jugador, v1, v2, v3, v4, v5);
         }
     }
     return puntuacion;
 }
 
-static int puntuacionVertical(Tablero *tablero, int jugador){
+static int puntuacionVertical(int jugador){
     int puntuacion = 0;
     int v1, v2, v3, v4, v5;
-    for(int i = 0; i < tablero->filas - 3; ++i){
-        for(int j = 0; j < tablero->columnas; ++j){
-            v1 = tablero->tablero[i][j];
-            v2 = tablero->tablero[i + 1][j];
-            v3 = tablero->tablero[i + 2][j];
-            v4 = tablero->tablero[i + 3][j];
+    for(int i = 0; i < config.filas - (config.cantFichas - 1); ++i){
+        for(int j = 0; j < config.columnas; ++j){
+            v1 = tablero[i][j];
+            v2 = tablero[i + 1][j];
+            v3 = tablero[i + 2][j];
+            v4 = tablero[i + 3][j];
             v5 = -1;
-            if(i + 4 < tablero->filas)
-                v5 = tablero->tablero[i + 4][j];
+            if(i + 4 < config.filas)
+                v5 = tablero[i + 4][j];
             puntuacion += puntuacionHeuristica(jugador, v1, v2, v3, v4, v5);
         }
     }
     return puntuacion;
 }
 
-static int puntuacionDiagonalPrincipal(Tablero *tablero, int jugador){
+static int puntuacionDiagonalPrincipal(int jugador){
     int puntuacion = 0;
     int v1, v2, v3, v4, v5;
-    for(int i = 0; i < tablero->filas - 3; ++i){
-        for(int j = 0; j < tablero->columnas - 3; ++j){
-            v1 = tablero->tablero[i][j];
-            v2 = tablero->tablero[i + 1][j + 1];
-            v3 = tablero->tablero[i + 2][j + 2];
-            v4 = tablero->tablero[i + 3][j + 3];
+    for(int i = 0; i < config.filas - (config.cantFichas - 1); ++i){
+        for(int j = 0; j < config.columnas - (config.cantFichas - 1); ++j){
+            v1 = tablero[i][j];
+            v2 = tablero[i + 1][j + 1];
+            v3 = tablero[i + 2][j + 2];
+            v4 = tablero[i + 3][j + 3];
             v5 = -1;
-            if(j + 4 < tablero->columnas && i + 4 < tablero->filas)
-                v5 = tablero->tablero[i + 4][j + 4];
+            if(j + 4 < config.columnas && i + 4 < config.filas)
+                v5 = tablero[i + 4][j + 4];
             puntuacion += puntuacionHeuristica(jugador, v1, v2, v3, v4, v5);
         }
     }
     return puntuacion;
 }
 
-static int puntuacionDiagonalSecundaria(Tablero *tablero, int jugador){
+static int puntuacionDiagonalSecundaria(int jugador){
     int puntuacion = 0;
     int v1, v2, v3, v4, v5;
-    for(int i = 0; i < tablero->filas - 3; ++i){
-        for(int j = tablero->columnas - 1; j > tablero->columnas - 3; --j){
-            v1 = tablero->tablero[i][j];
-            v2 = tablero->tablero[i + 1][j - 1];
-            v3 = tablero->tablero[i + 2][j - 2];
-            v4 = tablero->tablero[i + 3][j - 3];
+    for(int i = 0; i < config.filas - (config.cantFichas - 1); ++i){
+        for(int j = config.columnas - 1; j > config.columnas - (config.cantFichas - 1); --j){
+            v1 = tablero[i][j];
+            v2 = tablero[i + 1][j - 1];
+            v3 = tablero[i + 2][j - 2];
+            v4 = tablero[i + 3][j - 3];
             v5 = -1;
-            if(i + 4 < tablero->filas && j - 4 < tablero->columnas)
-                v5 = tablero->tablero[i + 4][j - 4];
+            if(i + 4 < config.filas && j - 4 < config.columnas)
+                v5 = tablero[i + 4][j - 4];
             puntuacion += puntuacionHeuristica(jugador, v1, v2, v3, v4, v5);
         }
     }
@@ -113,17 +113,17 @@ static int puntuacionDiagonalSecundaria(Tablero *tablero, int jugador){
 }
 
 // Buscar las jugadas en todo el tablero
-static int costo(Tablero *tablero, int jugador){
+static int costo(int jugador){
     int puntuacion = 0;
 
-    puntuacion += puntuacionHorizontal(tablero, jugador);
-    puntuacion += puntuacionVertical(tablero, jugador);
-    puntuacion += puntuacionDiagonalPrincipal(tablero, jugador);
-    puntuacion += puntuacionDiagonalSecundaria(tablero, jugador);
+    puntuacion += puntuacionHorizontal(jugador);
+    puntuacion += puntuacionVertical(jugador);
+    puntuacion += puntuacionDiagonalPrincipal(jugador);
+    puntuacion += puntuacionDiagonalSecundaria(jugador);
 
     return puntuacion;
 }
 
-int valorHeuristico(Tablero *tablero, int MAX, int MIN){
-    return costo(tablero, obtenerJugador(MAX)) - costo(tablero, obtenerJugador(MIN));
+int valorHeuristico(int MAX, int MIN){
+    return costo(obtenerJugador(MAX)) - costo(obtenerJugador(MIN));
 }

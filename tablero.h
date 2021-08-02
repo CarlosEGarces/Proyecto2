@@ -1,225 +1,228 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "salida.h"
 
 struct{
-    char nombre[15];
-    char *color;
+    char nombre[16];
+    const char *color;
+    const char *bg_color;
     int mode;
-    int turno;
 }jugadores[2];
 
+struct{
+    int fila;
+    int columna;
+}coordenadas[4] = {
+    {-1, -1},
+    {-1, -1},
+    {-1, -1},
+    {-1, -1}
+};
+
+struct{
+    int filas: 5; // Cantidad de filas del tablero
+    int columnas: 5; // Cantidad de columnas del tablero
+    int cantFichas: 3; // Cantidad de fichas en linea para ganar
+    int dificultad: 3; // Dificultad de la IA
+}config = {4, 4, 4, 0};
+
+int **tablero = NULL;
 
 int obtenerJugador(int mode){
-    if(jugadores[0].mode == mode)
-        return jugadores[0].turno;
-    return jugadores[1].turno;
+    return (jugadores[1].mode == mode) + 1;
 }
 
-typedef struct _tablero{
-    int filas;
-    int columnas;
-    int **tablero;
-}Tablero;
+void inicializarTablero(){
+    tablero = (int**)calloc(config.filas, sizeof(int*));
 
-Tablero *crearTablero(int filas, int columnas){
-    Tablero *tablero = NULL;
-
-    tablero = (Tablero*)calloc(1, sizeof(Tablero));
-    if(tablero == NULL){
-        fprintf(stderr, "Error al inicializar el tablero: falla en malloc.\n");
-        exit(1);
+    if(tablero){
+            fprintf(stderr, "Error en calloc.\n");
+            exit(1);
     }
 
-    tablero->filas = filas;
-    tablero->columnas = columnas;
-
-    tablero->tablero = (int**)calloc(tablero->filas, sizeof(int*));
-    if(tablero->tablero == NULL){
-        fprintf(stderr, "Error al inicializar el tablero: falla en malloc.\n");
-        exit(1);
-    }
-
-    for(int i = 0; i < tablero->filas; ++i){
-        tablero->tablero[i] = (int*)calloc(tablero->columnas, sizeof(int));
-        if(tablero->tablero[i] == NULL){
-            fprintf(stderr, "Error al inicializar el tablero: falla en malloc.\n");
+    for(int i = 0; i < config.filas; ++i){
+        tablero[i] = (int*)calloc(config.columnas, sizeof(int));
+        if(tablero[i] == NULL){
+            fprintf(stderr, "Error en calloc.\n");
             exit(1);
         }
     }
-
-    return tablero;
 }
 
 // Retorna 1 si pudo realizar la jugada, de lo contrario,
 // retorna 0 (Columna llena)
-int realizarJugada(Tablero *tablero, int columna, int jugador){
-    for(int i = tablero->filas-1; i >= 0; --i){
-        if(tablero->tablero[i][columna] == 0){
-            tablero->tablero[i][columna] = jugador;
+int realizarJugada(int columna, int jugador){
+    for(int i = config.filas - 1; i >= 0; --i){
+        if(tablero[i][columna] == 0){
+            tablero[i][columna] = jugador;
             return 1;
         }
     }
     return 0;
 }
 
-void revertirJugada(Tablero *tablero, int columna){
-    for(int i = 0; i < tablero->filas; ++i)
-        if(tablero->tablero[i][columna] != 0){
-            tablero->tablero[i][columna] = 0;
+void revertirJugada(int columna){
+    for(int i = 0; i < config.filas; ++i)
+        if(tablero[i][columna] != 0){
+            tablero[i][columna] = 0;
             break;
         }
 }
 
-void reiniciarTablero(Tablero *tablero){
-    for(int i = 0; i < tablero->filas; ++i)
-        for(int j = 0; j < tablero->columnas; ++j)
-            tablero->tablero[i][j] = 0;
+void vaciarTablero(){
+    for(int i = 0; i < config.filas; ++i)
+        for(int j = 0; j < config.columnas; ++j)
+            tablero[i][j] = 0;
 }
 
-int estaLleno(Tablero *tablero){
-    for(int i = 0; i < tablero->columnas; ++i)
-        if(!tablero->tablero[0][i])
+int tableroEstaLleno(){
+    for(int i = 0; i < config.columnas; ++i)
+        if(tablero[0][i] == 0)
             return 0;
     return 1;
 }
 
-static int verificarHorizontal(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
-    int contador = 1, valorFicha = tablero->tablero[fila][columna];
-    int diferencia = tablero->columnas - columna - 1;
+void reiniciarTablero();
+
+static int verificarHorizontal(int fila, int columna){
+    int contador = 1, valorFicha = tablero[fila][columna];
+    int diferencia = config.columnas - columna - 1;
     int indice = 0;
 
-    vector[indice++] = fila;
-    vector[indice++] = columna;
+    coordenadas[indice++] = fila;
+    coordenadas[indice++] = columna;
 
     for(int i = 1; i < diferencia + 1; ++i){ // Verifica a la derecha
-        if(tablero->tablero[fila][columna + i] != valorFicha || contador == cantidad)
+        if(tablero[fila][columna + i] != valorFicha || contador == config.cantFichas)
             break;
         contador++;
-        vector[indice++] = fila;
-        vector[indice++] = columna + i;
+        coordenadas[indice++] = fila;
+        coordenadas[indice++] = columna + i;
     }
-    diferencia = columna > cantidad ? cantidad - 1 : columna;
+    diferencia = columna > config.cantFichas ? config.cantFichas - 1 : columna;
     for(int i = 1; i < diferencia + 1; ++i){ // Verifica a la izquierda
-        if(tablero->tablero[fila][columna - i] != valorFicha || contador == cantidad)
+        if(tablero[fila][columna - i] != valorFicha || contador == config.cantFichas)
             break;
         contador++;
-        vector[indice++] = fila;
-        vector[indice++] = columna - i;
+        coordenadas[indice++] = fila;
+        coordenadas[indice++] = columna - i;
     }
-    return contador == cantidad;
+    return contador == config.cantFichas;
 }
 
-static int verificarVertical(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
-    int contador = 1, valorFicha = tablero->tablero[fila][columna];
-    int diferencia = tablero->filas - fila - 1;
+static int verificarVertical(int fila, int columna){
+    int contador = 1, valorFicha = tablero[fila][columna];
+    int diferencia = config.filas - fila - 1;
     int indice = 0;
 
-    vector[indice++] = fila;
-    vector[indice++] = columna;
+    coordenadas[indice++] = fila;
+    coordenadas[indice++] = columna;
 
     for(int i = 1; i < diferencia + 1; ++i){
-        if(tablero->tablero[fila + i][columna] != valorFicha || contador == cantidad)
+        if(tablero[fila + i][columna] != valorFicha || contador == config.cantFichas)
             break;
         contador++;
-        vector[indice++] = fila + i;
-        vector[indice++] = columna;
+        coordenadas[indice++] = fila + i;
+        coordenadas[indice++] = columna;
     }
-    return contador == cantidad;
+    return contador == config.cantFichas;
 }
 
 // Arriba a la izquierda hacia abajo a la derecha
-static int verificarDiagonalPrincipal(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
+static int verificarDiagonalPrincipal(int fila, int columna){
     int diferenciaArriba, diferenciaAbajo, contador = 1;
-    int valorFicha = tablero->tablero[fila][columna];
-    int distanciaColumna = tablero->columnas - columna - 1;
-    int distanciaFila = tablero->filas - fila - 1;
+    int valorFicha = tablero[fila][columna];
+    int distanciaColumna = config.columnas - columna - 1;
+    int distanciaFila = config.filas - fila - 1;
     int indice = 0;
 
-    vector[indice++] = fila;
-    vector[indice++] = columna;
+    coordenadas[indice++] = fila;
+    coordenadas[indice++] = columna;
 
     diferenciaArriba = columna > fila ? fila : columna;
     for(int i = 1; i < diferenciaArriba + 1; ++i){ // arriba a la izquierda
-        if(tablero->tablero[fila - i][columna - i] != valorFicha || contador == cantidad)
+        if(tablero[fila - i][columna - i] != valorFicha || contador == config.cantFichas)
             break;
         contador++;
-        vector[indice++] = fila - i;
-        vector[indice++] = columna - i;
+        coordenadas[indice++] = fila - i;
+        coordenadas[indice++] = columna - i;
     }
 
     diferenciaAbajo = distanciaColumna > distanciaFila ? distanciaFila : distanciaColumna;
     for(int i = 1; i < diferenciaAbajo + 1; ++i){ // abajo a la derecha
-        if(tablero->tablero[fila + i][columna + i] != valorFicha || contador == cantidad)
+        if(tablero[fila + i][columna + i] != valorFicha || contador == config.cantFichas)
             break;
         contador++;
-        vector[indice++] = fila + i;
-        vector[indice++] = columna + i;
+        coordenadas[indice++] = fila + i;
+        coordenadas[indice++] = columna + i;
     }
 
-    return contador == cantidad;
+    return contador == config.cantFichas;
 }
 
 // Abajo a la izquierda hacia arriba a la derecha
-static int verificarDiagonalSecundaria(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
+static int verificarDiagonalSecundaria(int fila, int columna){
     int diferenciaArriba, diferenciaAbajo, contador = 1;
-    int valorFicha = tablero->tablero[fila][columna];
-    int distanciaColumna = tablero->columnas - columna - 1;
-    int distanciaFila = tablero->filas - fila - 1;
+    int valorFicha = tablero[fila][columna];
+    int distanciaColumna = config.columnas - columna - 1;
+    int distanciaFila = config.filas - fila - 1;
     int indice = 0;
 
-    vector[indice++] = fila;
-    vector[indice++] = columna;
+    coordenadas[indice++] = fila;
+    coordenadas[indice++] = columna;
 
     diferenciaArriba = fila > distanciaColumna ? distanciaColumna : fila;
     for(int i = 1; i < diferenciaArriba + 1; ++i){ // arriba a la derecha
-        if(tablero->tablero[fila - i][columna + i] != valorFicha || contador == cantidad)
+        if(tablero[fila - i][columna + i] != valorFicha || contador == config.cantFichas)
             break;
         contador++;
-        vector[indice++] = fila - i;
-        vector[indice++] = columna + i;
+        coordenadas[indice++] = fila - i;
+        coordenadas[indice++] = columna + i;
     }
 
     diferenciaAbajo = columna > distanciaFila ? distanciaFila : columna;
     for(int i = 1; i < diferenciaAbajo + 1; ++i){ // abajo a la izquierda
-        if(tablero->tablero[fila + i][columna - i] != valorFicha || contador == cantidad)
+        if(tablero[fila + i][columna - i] != valorFicha || contador == config.cantFichas)
             break;
         contador++;
-        vector[indice++] = fila + i;
-        vector[indice++] = columna - i;
+        coordenadas[indice++] = fila + i;
+        coordenadas[indice++] = columna - i;
     }
 
-    return contador == cantidad;
+    return contador == config.cantFichas;
 }
 
-static int verificarDiagonales(Tablero *tablero, int fila, int columna, int cantidad, int vector[]){
-    if(verificarDiagonalPrincipal(tablero, fila, columna, cantidad, vector))
+static int verificarDiagonales(int fila, int columna){
+    if(verificarDiagonalPrincipal(fila, columna, coordenadas))
         return 1;
-    return verificarDiagonalSecundaria(tablero, fila, columna, cantidad, vector);
+    return verificarDiagonalSecundaria(fila, columna, coordenadas);
 }
 
-static void resetearVector(int vector[]){
-    for(int i = 0; i < 8; ++i)
-        vector[i] = -1;
+static void resetearCoordenadas(){
+    for(int i = 0; i < 4; ++i){
+        coordenadas[i].fila = -1;
+        coordenadas[i].columna = -1;
+    }
 }
 
 // Evalua el tablero y:
 // retorna 1 si gano el ultimo jugador en jugar,
 // de lo contrario, retorna 0 
-int verificarGanador(Tablero *tablero, int columna, int cantidad, int vector[]){
+int verificarGanador(int columna){
     if(columna < 0)
         return 0;
-    for(int i = 0; i < tablero->filas; ++i){
-        if(tablero->tablero[i][columna] != 0){
-            resetearVector(vector);
-            if(verificarHorizontal(tablero, i, columna, cantidad, vector))
+    for(int i = 0; i < config.filas; ++i){
+        if(tablero[i][columna] != 0){
+            resetearcoordenadas(coordenadas);
+            if(verificarHorizontal(i, columna))
                 return 1;
 
-            resetearVector(vector);
-            if(verificarVertical(tablero, i, columna, cantidad, vector))
+            resetearcoordenadas(coordenadas);
+            if(verificarVertical(i, columna))
                 return 1;
 
-            resetearVector(vector);
-            if(verificarDiagonales(tablero, i, columna, cantidad, vector))
+            resetearcoordenadas(coordenadas);
+            if(verificarDiagonales(i, columna))
                 return 1;
 
             break;
